@@ -1,5 +1,3 @@
-from src.textnode import TextType
-
 class HTMLNode():
     def __init__(self, tag=None, value=None, children=None, props=None):
         self.tag = tag
@@ -43,13 +41,7 @@ class LeafNode(HTMLNode):
             raise ValueError("Error: LeafNodes must have values")
         if not self.tag:
             return self.value
-        formatted = f'<{self.tag}'
-        if self.props:
-            formatted += f'{self.props_to_html()}>'
-        else:
-            formatted += '>'
-        formatted += f'{self.value}</{self.tag}>'
-        return formatted
+        return f'<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>'
     
     def __repr__(self):
         if not self.value:
@@ -72,11 +64,8 @@ class ParentNode(HTMLNode):
             raise ValueError("Error: ParentNodes must have tags")
         if not self.children:
             raise ValueError("Error: ParentNodes must have children")
-        formatted = f"<{self.tag}>"
-        for child in self.children:
-            formatted += child.to_html()
-        formatted += f"</{self.tag}>"
-        return formatted
+        children_html = ''.join(child.to_html() for child in self.children)
+        return f'<{self.tag}{self.props_to_html()}>{children_html}</{self.tag}>'
     
     def __repr__(self):
         if not self.tag:
@@ -94,20 +83,3 @@ class ParentNode(HTMLNode):
             formatted += "None, "
         formatted += "})"
         return formatted
-
-def text_node_to_html_node(text_node):
-    match text_node.text_type:
-        case TextType.TEXT:
-            return LeafNode(None, text_node.text, None)
-        case TextType.BOLD:
-            return LeafNode("b", text_node.text, None)
-        case TextType.ITALIC:
-            return LeafNode("i", text_node.text, None)
-        case TextType.CODE:
-            return LeafNode("code", text_node.text, None)
-        case TextType.LINK:
-            return LeafNode("a", text_node.text, {"href": text_node.url})
-        case TextType.IMAGE:
-            return LeafNode("img", "", {"src": text_node.url, "alt": text_node.text})
-        case _:
-            raise TypeError("Error: TextType does not exist")
